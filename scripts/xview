@@ -1,0 +1,16 @@
+# viewing XTRACT_output in native space under the current directory
+
+XTRACT_output=$(find . -name XTRACT_output -print)
+brain=$(find . -name \*FA.nii.gz | sed '2,$d')
+
+if [ -z "$XTRACT_output" ]; then 
+    echo "There seems no XTRACT_output..."
+    exit 1
+fi
+if [ -z "brain" ]; then 
+    echo "There seems no FA image..." 
+    exit 1
+fi
+
+xtract_viewer -dir $XTRACT_output -brain $brain
+
