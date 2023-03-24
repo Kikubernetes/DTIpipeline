@@ -6,6 +6,9 @@
 #         map/SR_FA.nii.gz
 # Please start in the working directory named "Image ID".
 
+ImageID=$(basename $FPATH)
+cd $FPATH
+
 # copy file and go into DWI
 cp map/SR_FA.nii.gz DWI/
 cd DWI
@@ -20,3 +23,5 @@ echo "XTRAXT finished at $(date)"
 # viewing tracts
 #xtract_viewer -dir XTRACT_output -brain SR_FA.nii.gz
 cd ..
+
+exit

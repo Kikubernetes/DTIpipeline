@@ -6,8 +6,8 @@
 #	SR.bval
 #	SR.bvec
 
-ImageID=${PWD##*/}
-date
+ImageID=$(basename $FPATH)
+cd $FPATH
 
 # dtifit
 echo "Now fitting the images..."
@@ -30,4 +30,6 @@ mv ./map/DWI_PA.nii.gz ./DWI
 #prepare files for reg_FMRIB_toFA
 #mkdir -p ~/SR/FMRIB_to_FA/$ImageID/map
 #cp ./map/SR_FA.nii.gz ~/SR/FMRIB_to_FA/$ImageID/map/FA.nii.gz
+
+exit
 

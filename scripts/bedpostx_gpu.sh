@@ -7,6 +7,10 @@
 #	SR.bvec
 #	SR.bval
 
+# get ImageID and change directory
+ImageID=$(basename $FPATH)
+cd $FPATH
+
 date
 cd DWI
 
@@ -29,3 +33,5 @@ bedpostx_datacheck Tractography
 echo "bedpostx started at $(date)"
 bedpostx_gpu Tractography
 cd ..
+
+exit

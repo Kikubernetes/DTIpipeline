@@ -13,5 +13,9 @@
 #│   ├── SR_MD.nii.gz
 #│  ...
 
+ImageID=$(basename $FPATH)
+cd $FPATH
+
 xtract_stats -d map/SR_ -xtract DWI/XTRACT_output -w DWI/DTI.bedpostX/xfms/standard2diff_warp  -r map/SR_FA
 
+exit

@@ -3,6 +3,10 @@
 # This script is to preprocess DWI data for later processing. Denoise, degibbs, topup(if possible) and eddy, correct b1 field bias, and make mask.
 # Start after first.sh in the working directory containing "nifti_data" directory.
 
+# get ImageID and change directory
+ImageID=$(basename $FPATH)
+cd $FPATH
+
 # make directory and copy all DWI nifti data
 mkdir -p DWI/{Pos,Neg}
 find ./nifti_data -name \*dMRI*_AP.* -exec cp {} ./DWI/Pos \;
@@ -61,7 +65,8 @@ mrdegibbs SR_PA_dwi_den.mif SR_PA_dwi_den_unr.mif -axes 0,1
 #fi
 
 # getting TotalReadoutTime from json file
-TotalReadoutTime=`cat ../nifti_data/24_dMRI_dir98_AP.json | grep TotalReadoutTime | cut -d: -f2 | tr -d ','`
+json=$(echo $list | awk '{ print $1 }')
+TotalReadoutTime=`cat ../nifti_data/${json}.json | grep TotalReadoutTime | cut -d: -f2 | tr -d ','`
 
 # dwifslpreproc topup & eddy
 echo "TOPUP started at $(date)"
@@ -77,5 +82,5 @@ dwi2mask SR_dwi_den_unr_preproc_unbiased.mif SR_mask_den_unr_preproc_unb.nii.gz
 mrconvert SR_dwi_den_unr_preproc_unbiased.mif SR_dwi_den_unr_preproc_unbiased.nii.gz -export_grad_fsl SR.bvec SR.bval
 
 cd ..
-
+exit
 
