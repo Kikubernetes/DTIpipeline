@@ -20,7 +20,7 @@ export FPATH
 
 # dicom to nifti 
 ./tfirst.sh
-echo "tfirst finished at $(date)" > $FPATH/timelog.txt
+echo "tfirst finished at $(date)"  | tee $FPATH/timelog.txt
 
 # denoise, degibbs, topup, eddy, biasfieldcorrection, and make mask
 ./tall_preprocessing.sh
@@ -28,22 +28,25 @@ echo "tall_preprocessing finished at $(date)" > $FPATH/timelog.txt
 
 # prepare files for TBSS
 ./tpreTBSS.sh
-echo "tpreTBSS finished at $(date)" > $FPATH/timelog.txt
+echo "tpreTBSS finished at $(date)"  | tee -a $FPATH/timelog.txt
 
+# To run TBSS, remove # from the line below.
 # TBSSを実施するときは下の行のコメントを外して下さい
 #./TBSS.sh
 
 # run bedpostx_gpu
 ./bedpostx_gpu.sh
-echo "bedpostx_gpu finished at $(date)" > $FPATH/timelog.txt
+echo "bedpostx_gpu finished at $(date)"  | tee -a $FPATH/timelog.txt
 
 # make warp for registration
 ./tmakingwarps.sh
-echo "ttmakingwarps finished at $(date)" > $FPATH/timelog.txt
+echo "tmakingwarps finished at $(date)"  | tee -a $FPATH/timelog.txt
 
 # run xtract_gpu and tractography of major tracts
 ./xtract_gpu.sh
-echo "xtract finished at $(date)" > $FPATH/timelog.txt
+echo "xtract finished at $(date)"  | tee -a $FPATH/timelog.txt
 
 # run xstats and get statistic value for drawn tracts
 ./xstat.sh
+echo "xstats finished at $(date)"  | tee -a $FPATH/timelog.txt
+echo "DTIpipeline finished. Now you can run xview in the subject directory and check the tractography. Statistics is in DWI/XTRACT_output/stats.csv."
