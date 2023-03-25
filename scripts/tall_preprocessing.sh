@@ -19,11 +19,11 @@ ls *.bval | sed 's/.bval//g' > Poslist.txt
 
 # merge Pos files
 list=$(cat Poslist.txt)
-paste -d " " ${list}.bval > DWI.bval
-paste -d " " ${list}.bvec > DWI.bvec
-fslmerge -t DWI.nii.gz ${list}.nii
+paste -d " " $(ls *.bval) > DWI.bval
+paste -d " " $(ls *.bvec) > DWI.bvec
+fslmerge -t DWI.nii.gz ${list}
 
-echo "${list}.nii was merged to DWI.nii.gz"
+echo "${list} was merged to DWI.nii.gz"
 mv DWI* ..
 cd ..
 
@@ -34,11 +34,11 @@ ls *.bval | sed 's/.bval//g' > Neglist.txt
 
 # merge Neg files
 list=$(cat Neglist.txt)
-paste -d " " ${list}.bval > DWI_PA.bval
-paste -d " " ${list}.bvec > DWI_PA.bvec
-fslmerge -t DWI_PA.nii.gz ${list}.nii
+paste -d " " $(ls *.bval) > DWI_PA.bval
+paste -d " " $(ls *.bvec) > DWI_PA.bvec
+fslmerge -t DWI_PA.nii.gz ${list}
 
-echo "${list}.nii was merged to DWI_PA.nii.gz"
+echo "${list} was merged to DWI_PA.nii.gz"
 mv DWI* ..
 cd ..
 
