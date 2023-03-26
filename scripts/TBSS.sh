@@ -1,6 +1,10 @@
 #!/bin/bash
 
-date
+# This script run TBSS
+
+ImageID=$(basename $FPATH)
+cd $FPATH
+
 #TBSS_1 prepocessing
 tbss_1_preproc map/*FA.nii.gz
 

@@ -19,12 +19,13 @@ read -p "Enter the path to your dicom folder > " FPATH
 export FPATH
 
 # dicom to nifti 
+echo "tfirst started at $(date)"  | tee $FPATH/timelog.txt
 ./tfirst.sh
-echo "tfirst finished at $(date)"  | tee $FPATH/timelog.txt
+echo "tfirst finished at $(date)"  | tee -a $FPATH/timelog.txt
 
 # denoise, degibbs, topup, eddy, biasfieldcorrection, and make mask
 ./tall_preprocessing.sh
-echo "tall_preprocessing finished at $(date)" > $FPATH/timelog.txt
+echo "tall_preprocessing finished at $(date)"  | tee -a $FPATH/timelog.txt
 
 # prepare files for TBSS
 ./tpreTBSS.sh
