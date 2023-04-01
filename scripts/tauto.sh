@@ -2,8 +2,8 @@
 
 # This script is to process DICOM data to xtract with gpu and cuda10.2.
 # Prepare DICOM files in the directory named "ImageID" and set it the working directory.
-# In short, the command is like this: cd scripts; ./tauto.sh.
-# You will be asked "Enter the path to your dicom folder >".
+# In short, the command is like this: cd path_to_DTIpipeline/scripts; ./tauto.sh.
+# You will be asked to "Enter the path to your dicom folder >".
 # Please enter the path to your dicom folder. ex) ~/imagedata/sub001
 # Output will be in the same folder and dicom files will be put into the folder named "org_data".
 
@@ -17,6 +17,12 @@
 # get path to dicom folder
 read -p "Enter the path to your dicom folder > " FPATH
 export FPATH
+
+# check if $FPATH exists
+if [[ ! -d $FPATH ]];then
+    echo "$FPATH does not exist."
+    exit 1
+fi
 
 # dicom to nifti 
 echo "tfirst started at $(date)"  | tee $FPATH/timelog.txt
