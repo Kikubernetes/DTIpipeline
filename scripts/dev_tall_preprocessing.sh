@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# This script is to preprocess DWI data for later processing. Denoise, degibbs, topup(if possible) and eddy, correct b1 field bias, and make mask.
+# This script is to preprocess DWI data for later processing. 
+# Denoise, degibbs, topup and eddy, correct b1 field bias, and make mask.
 # Start after first.sh in the working directory containing "nifti_data" directory.
 
 # get ImageID and change directory
@@ -9,18 +10,25 @@ cd $FPATH
 
 # make directory and copy all DWI nifti data 
 mkdir DWI
+cd nifti_data
+list=$( ls *AP.bval | sed 's/.bval//g' ; ls *PA.bval | sed 's/.bval//g' )
+for f in $list; do
+    cp $f.nii ../DWI
+    done
 find ./nifti_data -name *dMRI* -exec cp {} ./DWI \;
 
 # merge files (This part is ontributed by Dr.Nemoto)
-cd DWI
+cd ../DWI
 fslmerge -a DWI.nii.gz $(ls *AP.nii; ls *PA.nii)
 paste -d " " $(ls *AP.bval; ls *PA.bval) > DWI.bval
 paste -d " " $(ls *AP.bvec; ls *PA.bvec) > DWI.bvec
 
 # make a list to clearly indicate the order 
-( ls *AP.bval | sed 's/.bval//g' ; ls *PA.bval | sed 's/.bval//g' )  > filelist.txt
+echo "Files are merged in this order" > filelist.txt
+( ls *AP.bval ; ls *PA.bval )  >> filelist.txt
+( ls *AP.bvec ; ls *PA.bvec )  >> filelist.txt
+( ls *AP.nii  ; ls *PA.bval )  >> filelist.txt
 
-list=$(cat filelist.txt)
 echo "${list} was merged to DWI.nii.gz"
 
 # convert to mif
