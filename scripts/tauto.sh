@@ -17,7 +17,9 @@
 
 # get path to dicom folder
 read -p "Enter the path to your dicom folder > " FPATH
+ImageID=$(basename $FPATH)
 export FPATH
+export ImageID
 
 
 # check if $FPATH exists
@@ -39,7 +41,13 @@ timespent() {
     echo " " >> $FPATH/timelog.txt
 }
 
+# If timelog already exists in $ImagepPath, change its name.
+if [[ -f $FPATH/timelog.txt ]]; then
+    mv $FPATH/timelog.txt $FPATH/timelog.txt_older_"$(date +%Y_%m_%d_%H_%M_%S)"
+fi
+
 # record start time
+allstartsec=$(date +%s)
 echo "Processing started at $(date)"  | tee $FPATH/timelog.txt
 echo " " >> $FPATH/timelog.txt
 
@@ -101,5 +109,19 @@ echo "xstat finished at $(date)"  | tee -a $FPATH/timelog.txt
 timespent
 
 # record finish time
+allfinishsec=$(date +%s)
 echo "Processing finished at $(date)"  | tee -a $FPATH/timelog.txt
-echo "DTIpipeline finished. Now you can run xview in the subject directory and check the tractography. Statistics is in DWI/XTRACT_output/stats.csv."
+echo "DTIpipeline finished. To check the tractography, copy xview into the subject directory, change directories \
+and run xview. Statistics is in DWI/XTRACT_output/stats.csv."
+totaltimespent() {
+    spentsec=$((allfinishsec-allstartsec))
+    spenttime=$(date --date @$spentsec "+%T" -u)
+    if [[ $spentsec -ge 86400 ]]; then
+        days=$((spentsec/86400))
+        echo "Total time spent was $days day(s) and $spenttime" | tee -a $FPATH/timelog.txt
+    else 
+        echo "Total time spent was $spenttime" | tee -a $FPATH/timelog.txt
+    fi
+    echo " " >> $FPATH/timelog.txt
+}
+totaltimespent

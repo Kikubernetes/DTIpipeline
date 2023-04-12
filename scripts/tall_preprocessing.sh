@@ -1,78 +1,49 @@
 #!/bin/bash
 
-# This script is to preprocess DWI data for later processing. Denoise, degibbs, topup(if possible) and eddy, correct b1 field bias, and make mask.
+# This script is to preprocess DWI data for later processing. 
+# Denoise, degibbs, topup and eddy, correct b1 field bias, and make mask.
 # Start after first.sh in the working directory containing "nifti_data" directory.
+# Version20230412
 
 # get ImageID and change directory
-ImageID=$(basename $FPATH)
 cd $FPATH
 
-# make directory and copy all DWI nifti data
-mkdir -p DWI/{Pos,Neg}
-find ./nifti_data -name \*dMRI*_AP.* -exec cp {} ./DWI/Pos \;
-find ./nifti_data -name \*dMRI*_PA.* -exec cp {} ./DWI/Neg \;
+# make directory and copy all DWI nifti data 
+cd nifti_data
+list=$( ls *AP.bval | sed 's/.bval//g' ; ls *PA.bval | sed 's/.bval//g' )
 
-cd DWI/Pos
+# merge files (This part is ontributed by Dr.Nemoto)
+fslmerge -a DWI.nii.gz $list
+paste -d " " $(ls *AP.bval; ls *PA.bval) > DWI.bval
+paste -d " " $(ls *AP.bvec; ls *PA.bvec) > DWI.bvec
 
-# make list
-ls *.bval | sed 's/.bval//g' > Poslist.txt
+# make a list to clearly indicate the order 
+echo "Files are merged in this order." > $FPATH/dMRI_list.txt
+echo "Bvals:" >> $FPATH/dMRI_list.txt
+( ls *AP.bval ; ls *PA.bval )  >> $FPATH/dMRI_list.txt
+echo "Bvecs:" >> $FPATH/dMRI_list.txt
+( ls *AP.bvec ; ls *PA.bvec )  >> $FPATH/dMRI_list.txt
+echo "Image Files are merged in this order." | tee -a $FPATH/dMRI_list.txt
+echo "$list" | tee -a $FPATH/dMRI_list.txt
 
-# merge Pos files
-list=$(cat Poslist.txt)
-paste -d " " $(ls *.bval) > DWI.bval
-paste -d " " $(ls *.bvec) > DWI.bvec
-fslmerge -t DWI.nii.gz ${list}
-
-echo "${list} was merged to DWI.nii.gz"
-mv DWI* ..
-cd ..
-
-cd Neg
-
-# make list
-ls *.bval | sed 's/.bval//g' > Neglist.txt
-
-# merge Neg files
-list=$(cat Neglist.txt)
-paste -d " " $(ls *.bval) > DWI_PA.bval
-paste -d " " $(ls *.bvec) > DWI_PA.bvec
-fslmerge -t DWI_PA.nii.gz ${list}
-
-echo "${list} was merged to DWI_PA.nii.gz"
-mv DWI* ..
-cd ..
+# make DWI directory and move files
+mkdir ../DWI && mv DWI.nii.gz DWI.bval DWI.bvec ../DWI/ && cd ../DWI
 
 # convert to mif
 mrconvert DWI.nii.gz SR_dwi.mif -fslgrad DWI.bvec DWI.bval -datatype float32
-mrconvert DWI_PA.nii.gz SR_PA_dwi.mif -fslgrad DWI_PA.bvec DWI_PA.bval -datatype float32
 
 # denoise and degibbs
 dwidenoise SR_dwi.mif SR_dwi_den.mif -noise SR_dwi_noise.mif
 mrdegibbs SR_dwi_den.mif SR_dwi_den_unr.mif -axes 0,1
-dwidenoise SR_PA_dwi.mif SR_PA_dwi_den.mif -noise SR_PA_dwi_noise.mif
-mrdegibbs SR_PA_dwi_den.mif SR_PA_dwi_den_unr.mif -axes 0,1
-
-# making b0_pair for topup
-	#dwiextract SR_dwi_den_unr.mif - -bzero | mrmath - mean SR_mean_b0_AP.mif -axis 3
-	#mrconvert DWI_PA.nii.gz temp01.mif -fslgrad DWI_PA.bvec DWI_PA.bval -datatype float32
-	#dwiextract temp01.mif - -bzero | mrmath - mean SR_mean_b0_PA.mif -axis 3
-	#mrcat SR_mean_b0_AP.mif SR_mean_b0_PA.mif -axis 3 SR_b0_pair.mif
-	#rm temp01.mif
-
-# no-PA version
-#if [ ! -e DWI_PA.nii ]; then
-	#dwiextract SR_dwi_den_unr.mif - -bzero | mrmath - mean SR_mean_b0_AP.mif -axis 3
-#fi
 
 # getting TotalReadoutTime from json file
 json=$(echo $list | awk '{ print $1 }')
 TotalReadoutTime=`cat ../nifti_data/${json}.json | grep TotalReadoutTime | cut -d: -f2 | tr -d ','`
 
 # dwifslpreproc topup & eddy
-echo "TOPUP started at $(date)"
-mrcat SR_dwi_den_unr.mif SR_PA_dwi_den_unr.mif all_DWIs.mif -axis 3
+echo "TOPUP started at $(date)" | tee -a $FPATH/timelog.txt
 dwifslpreproc all_DWIs.mif SR_dwi_den_unr_preproc.mif -pe_dir AP -rpe_all -eddy_options " --slm=linear" -readout_time $TotalReadoutTime
-echo "eddy finished at $(date)"
+echo "eddy finished at $(date)" | tee -a $FPATH/timelog.txt
 
 # correct b1 field bias
 dwibiascorrect ants SR_dwi_den_unr_preproc.mif SR_dwi_den_unr_preproc_unbiased.mif -bias SR_bias.mif
