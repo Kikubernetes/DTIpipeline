@@ -18,15 +18,8 @@ date
 # prepare files for later processing
 cd ..
 mkdir map
-mv ./DWI/*.nii.gz ./map
-#cp ./map/SR_FA.nii.gz ~/SR/TBSS/"$ImageID"_FA.nii.gz
-#cp ./map/SR_MD.nii.gz ~/SR/MD/"$ImageID"_FA.nii.gz
-#cp ./map/SR_L1.nii.gz ~/SR/L1/"$ImageID"_FA.nii.gz
-#cp ./map/SR_V1.nii.gz ~/SR/V1/"$ImageID"_FA.nii.gz
-mv ./map/SR_dwi_den_unr_preproc_unbiased.nii.gz ./DWI
-mv ./map/SR_mask_den_unr_preproc_unb.nii.gz ./DWI
-mv ./map/DWI.nii.gz ./DWI
-mv ./map/DWI_PA.nii.gz ./DWI
+mv ./DWI/SR_??.nii.gz map/
+
 #prepare files for reg_FMRIB_toFA
 #mkdir -p ~/SR/FMRIB_to_FA/$ImageID/map
 #cp ./map/SR_FA.nii.gz ~/SR/FMRIB_to_FA/$ImageID/map/FA.nii.gz
