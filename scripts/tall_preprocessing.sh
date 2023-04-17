@@ -3,7 +3,7 @@
 # This script is to preprocess DWI data for later processing. 
 # Denoise, degibbs, topup and eddy, correct b1 field bias, and make mask.
 # Start after first.sh in the working directory containing "nifti_data" directory.
-# Version20230412
+# Version20230417
 
 # get ImageID and change directory
 cd $FPATH
