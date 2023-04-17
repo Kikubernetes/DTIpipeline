@@ -42,7 +42,7 @@ TotalReadoutTime=`cat ../nifti_data/${json}.json | grep TotalReadoutTime | cut -
 
 # dwifslpreproc topup & eddy
 echo "TOPUP started at $(date)" | tee -a $FPATH/timelog.txt
-dwifslpreproc all_DWIs.mif SR_dwi_den_unr_preproc.mif -pe_dir AP -rpe_all -eddy_options " --slm=linear" -readout_time $TotalReadoutTime
+dwifslpreproc SR_dwi_den_unr.mif SR_dwi_den_unr_preproc.mif -pe_dir AP -rpe_all -eddy_options " --slm=linear" -readout_time $TotalReadoutTime
 echo "eddy finished at $(date)" | tee -a $FPATH/timelog.txt
 
 # correct b1 field bias
