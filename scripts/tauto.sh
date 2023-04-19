@@ -87,7 +87,7 @@ timespent
 # make warp for registration
 startsec=$(date +%s)
 echo "makingwarps started at $(date)"  | tee -a $FPATH/timelog.txt
-./makingwarps.sh
+./tmakingwarps.sh
 finishsec=$(date +%s)
 echo "makingwarps finished at $(date)"  | tee -a $FPATH/timelog.txt
 timespent

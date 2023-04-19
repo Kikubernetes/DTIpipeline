@@ -42,15 +42,18 @@ TotalReadoutTime=`cat ../nifti_data/${json}.json | grep TotalReadoutTime | cut -
 
 # dwifslpreproc topup & eddy
 echo "TOPUP started at $(date)" | tee -a $FPATH/timelog.txt
-dwifslpreproc SR_dwi_den_unr.mif SR_dwi_den_unr_preproc.mif -pe_dir AP -rpe_all -eddy_options " --slm=linear" -readout_time $TotalReadoutTime
+dwifslpreproc SR_dwi_den_unr.mif SR_dwi_den_unr_preproc.mif \
+-pe_dir AP -rpe_all -eddy_options " --slm=linear" -readout_time $TotalReadoutTime
 echo "eddy finished at $(date)" | tee -a $FPATH/timelog.txt
 
 # correct b1 field bias
-dwibiascorrect ants SR_dwi_den_unr_preproc.mif SR_dwi_den_unr_preproc_unbiased.mif -bias SR_bias.mif
+dwibiascorrect ants SR_dwi_den_unr_preproc.mif SR_dwi_den_unr_preproc_unbiased.mif \
+-bias SR_bias.mif
 
 # make mask for dtifit and convert to nifti 
 dwi2mask SR_dwi_den_unr_preproc_unbiased.mif SR_mask_den_unr_preproc_unb.nii.gz
-mrconvert SR_dwi_den_unr_preproc_unbiased.mif SR_dwi_den_unr_preproc_unbiased.nii.gz -export_grad_fsl SR.bvec SR.bval
+mrconvert SR_dwi_den_unr_preproc_unbiased.mif SR_dwi_den_unr_preproc_unbiased.nii.gz \
+-export_grad_fsl SR.bvec SR.bval
 
 cd ..
 exit
