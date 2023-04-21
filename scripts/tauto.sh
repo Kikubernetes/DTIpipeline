@@ -48,11 +48,11 @@ fi
 
 # record start time
 allstartsec=$(date +%s)
-echo "Processing started at $(date)"  | tee $FPATH/timelog.txt
+echo "Processing started at $(date)"  | tee -a $FPATH/timelog.txt
 echo " " >> $FPATH/timelog.txt
 
 # dicom to nifti 
-echo "tfirst started at $(date)"  | tee $FPATH/timelog.txt
+echo "tfirst started at $(date)"  | tee -a $FPATH/timelog.txt
 ./tfirst.sh
 echo "tfirst finished at $(date)"  | tee -a $FPATH/timelog.txt
 
