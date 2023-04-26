@@ -41,7 +41,7 @@ fi
 # define a function to record timelog of each process
 
 timespent() {
-    echo "$1 started at $(date)"  | tee $FPATH/timelog.txt
+    echo "$1 started at $(date)"  | tee -a $FPATH/timelog.txt
     startsec=$(date +%s)
     eval ./$1
     finishsec=$(date +%s)
