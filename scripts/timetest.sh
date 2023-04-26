@@ -9,9 +9,10 @@ timespent() {
     echo "$1 finished at $(date)"  | tee -a $FPATH/timelog.txt
 
     spentsec=$((finishsec-startsec))
-    spenttime=$(date --date @$spentsec "+%T" -u 2> /dev/null)
+    # Support for both linux and mac date commands (i.e., GNU and BSD date)
+    spenttime=$(date --date @$spentsec "+%T" -u 2> /dev/null) # for linux
     if [[ $? != 0 ]]; then
-        spenttime=$(date -u -r $spentsec +"%T")
+        spenttime=$(date -u -r $spentsec +"%T") # for mac
     fi
 
     if [[ $spentsec -ge 86400 ]]; then
