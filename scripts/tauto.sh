@@ -1,24 +1,28 @@
 #!/bin/bash
 
-# This script is to process DICOM data to XTRACT with gpu and cuda10.2.
-# Prepare DICOM files in the directory named "ImageID" and set it the working directory.
-# It is assumed that there are pair(s) (one or more sets) containing b0(s) that differ only in phase encoding direction.
-# In short, the command is like this: cd path_to_DTIpipeline/scripts; ./tauto.sh.
-# You will be asked to "Enter the path to your dicom folder >".
-# Please enter the path to your dicom folder. ex) ~/imagedata/sub001
-# Output will be in the same folder and dicom files will be put into the folder named "org_data".
-# FSL 6.0.6 or later is assumed; if you are using 6.0.5 or earlier, edit tall_preprocessing and comment out 
-# FSL6.0.6 (using the -nthr option) and uncomment FSL6.0.5 (It will take longer but will do topup without multithreading).
+if [[$1 == h]]; then
+cat << EOF
+This script is to process DICOM data to XTRACT with gpu and cuda10.2.
+Prepare DICOM files in the directory named "ImageID" and set it the working directory.
+It is assumed that there are pair(s) (one or more sets) containing b0(s) that differ only in phase encoding direction.
+In short, the command is like this: cd path_to_DTIpipeline/scripts; ./tauto.sh.
+You will be asked to "Enter the path to your dicom folder >".
+Please enter the path to your dicom folder. ex) ~/imagedata/sub001
+Output will be in the same folder and dicom files will be put into the folder named "org_data".
+FSL 6.0.6 or later is assumed; if you are using 6.0.5 or earlier, edit tall_preprocessing and comment out 
+FSL6.0.6 (using the --nthr option) and uncomment FSL6.0.5 (It will take longer but will do topup without multithreading).
 
-# このスクリプトは、gpuとcuda10.2を使ってDICOMデータからXTRACTおよびXSTATまでの処理を行います。
-# 被験者ID名（例えばsub001）のディレクトリにDICOMファイルを用意して下さい。
-# 位相エンコード方向のみ異なるb0を含んだdMRI画像のペア（1セット以上）があることを前提としています。
-# このスクリプトが入っている"scripts"ディレクトリに移動して以下のコマンドを打つと処理を開始します。 ./tauto.sh.
-# "Enter the path to your dicom folder >".と聞かれるので、被験者ディレクトリのパスを入力してください。ex) ~/imagedata/sub001
-# 結果は同じ被験者ディレクトリ内に出力され、dicomファイルはその中の "org_data "というフォルダにまとめられます。
-# FSL 6.0.6以降を前提としています。6.0.5以前のバージョンをお使いの場合はtall_preprocessingを編集し、
-# FSL6.0.6（—nthrオプションを使用）をコメントアウトしてFSL6.0.5のコメントを外してください
-#（時間がかかりますがマルチスレッドを使わずにtopupを行います）。
+このスクリプトは、gpuとcuda10.2を使ってDICOMデータからXTRACTおよびXSTATまでの処理を行います。
+被験者ID名（例えばsub001）のディレクトリにDICOMファイルを用意して下さい。
+位相エンコード方向のみ異なるb0を含んだdMRI画像のペア（1セット以上）があることを前提としています。
+このスクリプトが入っている"scripts"ディレクトリに移動して以下のコマンドを打つと処理を開始します。 ./tauto.sh
+"Enter the path to your dicom folder >".と聞かれるので、被験者ディレクトリのパスを入力してください。ex) ~/imagedata/sub001
+結果は同じ被験者ディレクトリ内に出力され、dicomファイルはその中の "org_data "というフォルダにまとめられます。
+FSL 6.0.6以降を前提としています。6.0.5以前のバージョンをお使いの場合はtall_preprocessingを編集し、
+FSL6.0.6（—-nthrオプションを使用）をコメントアウトしてFSL6.0.5のコメントを外してください。
+時間がかかりますがマルチスレッドを使わずにtopupを行います。
+EOF
+fi
 
 # get path to dicom folder
 read -p "Enter the path to your dicom folder > " FPATH
@@ -98,8 +102,8 @@ timespent xstat.sh
 # record finish time
 allfinishsec=$(date +%s)
 echo "Processing finished at $(date)"  | tee -a $FPATH/timelog.txt
-echo "DTIpipeline finished. To check the tractography, copy "xview" script into the subject directory, change directories \
-and run xview. Statistics is in DWI/XTRACT_output/stats.csv."
+echo "DTIpipeline finished. To check the tractography, copy "xview" script into the subject directory, \
+change directories and run xview. Statistics is in DWI/XTRACT_output/stats.csv."
 totaltimespent() {
     spentsec=$((allfinishsec-allstartsec))
 
