@@ -1,4 +1,0 @@
-./sleep.sh started at 2023年  4月 12日 水曜日 23:55:45 JST
-./sleep.sh finished at 2023年  4月 12日 水曜日 23:56:15 JST
-Time spent was 00:00:30
- 

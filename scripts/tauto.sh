@@ -41,6 +41,26 @@ timespent() {
     echo " " >> $FPATH/timelog.txt
 }
 
+# define a function to record timelog of each process
+
+timespent() {
+    echo "$1 started at $(date)"  | tee -a $FPATH/timelog.txt
+    startsec=$(date +%s)
+    eval ./$1
+    finishsec=$(date +%s)
+    echo "$1 finished at $(date)"  | tee -a $FPATH/timelog.txt
+    spentsec=$((finishsec-startsec))
+    spenttime=$(date --date @$spentsec "+%T" -u)
+    if [[ $spentsec -ge 86400 ]]; then
+        days=$((spentsec/86400))
+        echo "Time spent was $days day(s) and $spenttime" | tee -a $FPATH/timelog.txt
+    else 
+        echo "Time spent was $spenttime" | tee -a $FPATH/timelog.txt
+    fi
+    echo " " >> $FPATH/timelog.txt
+}
+
+
 # If timelog already exists in $ImagepPath, change its name.
 if [[ -f $FPATH/timelog.txt ]]; then
     mv $FPATH/timelog.txt $FPATH/timelog.txt_older_"$(date +%Y_%m_%d_%H_%M_%S)"
@@ -50,6 +70,8 @@ fi
 allstartsec=$(date +%s)
 echo "Processing started at $(date)"  | tee $FPATH/timelog.txt
 echo " " >> $FPATH/timelog.txt
+
+
 
 # dicom to nifti 
 echo "tfirst started at $(date)"  | tee $FPATH/timelog.txt
