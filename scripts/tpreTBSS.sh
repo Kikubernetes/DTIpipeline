@@ -13,7 +13,6 @@ cd $FPATH
 echo "Now fitting the images..."
 cd DWI
 dtifit --bvals=SR.bval --bvecs=SR.bvec --data=SR_dwi_den_unr_preproc_unbiased.nii.gz --mask=SR_mask_den_unr_preproc_unb.nii.gz --out=SR
-date
 
 # prepare files for later processing
 cd ..

@@ -41,7 +41,7 @@ fi
 # define a function to record timelog of each process
 
 timespent() {
-    echo "$1 started at $(date)"  | tee $FPATH/timelog.txt
+    echo "$1 started at $(date)"  | tee -a $FPATH/timelog.txt
     startsec=$(date +%s)
     eval ./$1
     finishsec=$(date +%s)
@@ -86,7 +86,7 @@ timespent tpreTBSS.sh
 
 # To run TBSS, remove # from the line below.
 # TBSSを実施するときは下の行のコメントを外して下さい
-timespent TBSS.sh
+# timespent TBSS.sh
 
 # run bedpostx_gpu
 timespent bedpostx_gpu.sh
