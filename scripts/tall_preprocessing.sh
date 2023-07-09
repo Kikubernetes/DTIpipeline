@@ -40,10 +40,18 @@ mrdegibbs SR_dwi_den.mif SR_dwi_den_unr.mif -axes 0,1
 json=$(echo $list | awk '{ print $1 }')
 TotalReadoutTime=`cat ../nifti_data/${json}.json | grep TotalReadoutTime | cut -d: -f2 | tr -d ','`
 
-# dwifslpreproc topup & eddy
 echo "TOPUP started at $(date)" | tee -a $FPATH/timelog.txt
+# dwifslpreproc topup & eddy (if your FSL is 6.0.6 or later)
 dwifslpreproc SR_dwi_den_unr.mif SR_dwi_den_unr_preproc.mif \
--pe_dir AP -rpe_all -eddy_options " --slm=linear" -readout_time $TotalReadoutTime
+-pe_dir AP -rpe_all \
+-topup_options " --nthr=8" \
+-eddy_options " --slm=linear" \
+-readout_time $TotalReadoutTime
+# dwifslpreproc topup & eddy (if your FSL is 6.0.5 or earlier)
+#dwifslpreproc SR_dwi_den_unr.mif SR_dwi_den_unr_preproc.mif \
+#pe_dir AP -rpe_all \
+#-eddy_options " --slm=linear" \
+#-readout_time $TotalReadoutTime
 echo "eddy finished at $(date)" | tee -a $FPATH/timelog.txt
 
 # correct b1 field bias

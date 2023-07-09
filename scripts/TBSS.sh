@@ -1,18 +1,22 @@
 #!/bin/bash
 
-# This script run TBSS
+# This script is to run TBSS.
 
-ImageID=$(basename $FPATH)
+read -p "Enter the path to your subjects directory > " SPATH
 
-cd $FPATH
-if [[ ! -d ../TBSS ]]; then
-    mkdir ../TBSS
+# check if $SPATH exists
+if [[ ! -d $SPATH ]];then
+    echo "$SPATH does not exist."
+    exit 1
 fi
 
-cp map/*FA.nii.gz ../TBSS/${ImageID}_FA.nii.gz
+# prpare files
+cd $SPATH
+mkdir TBSS
+find $SPATH -name "*FA.nii.gz" TBSS
+cd TBSS
 
 #TBSS_1 prepocessing
-cd ../TBSS
 tbss_1_preproc *FA.nii.gz
 
 #TBSS_2 registration
@@ -24,7 +28,8 @@ tbss_3_postreg -T
 #TBSS_4 skelton projection
 tbss_4_prestats 0.2
 
-exit
+
+
 
 
 

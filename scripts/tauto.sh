@@ -1,19 +1,44 @@
 #!/bin/bash
 
-# This script is to process DICOM data to XTRACT with gpu and cuda10.2.
-# Prepare DICOM files in the directory named "ImageID" and set it the working directory.
-# It is assumed that there are pair(s) (one or more sets) containing b0(s) that differ only in phase encoding direction.
-# In short, the command is like this: cd path_to_DTIpipeline/scripts; ./tauto.sh.
-# You will be asked to "Enter the path to your dicom folder >".
-# Please enter the path to your dicom folder. ex) ~/imagedata/sub001
-# Output will be in the same folder and dicom files will be put into the folder named "org_data".
+# This script is written by Kikuko Kaneko based on the 8th to 11th ABIS tutorial.
+# Some part is contributed by Dr.Nemoto.
+# See usage below for descriptions and usage of the scripts.
+Version=20230527
 
-# このスクリプトは、gpuとcuda10.2を使ってDICOMデータからXTRACTおよびXSTATまでの処理を行います。
-# 被験者ID名（例えばsub001）のディレクトリにDICOMファイルを用意して下さい。
-# 位相エンコード方向のみ異なるb0を含んだdMRI画像のペア（1セット以上）があることを前提としています。
-# このスクリプトが入っている"scripts"ディレクトリに移動して以下のコマンドを打つと処理を開始します。 ./tauto.sh.
-# "Enter the path to your dicom folder >".と聞かれるので、被験者ディレクトリのパスを入力してください。ex) ~/imagedata/sub001
-# 結果は同じ被験者ディレクトリ内に出力され、dicomファイルはその中の "org_data "というフォルダにまとめられます。
+usage() {
+    cat << EOF
+This script is to process DICOM data to XTRACT with gpu and cuda10.2.
+Prepare DICOM files in the directory named "ImageID" and set it the working directory.
+It is assumed that there is at least one pair of images containing b0(s) that differ
+only in phase encoding direction.
+In short, the command is like this: cd path_to_DTIpipeline/scripts; ./tauto.sh
+You will be asked to "Enter the path to your dicom folder >".
+Please enter the path to your dicom folder. ex) ~/imagedata/sub001
+Output will be in the same folder and dicom files will be put into the folder named "org_data".
+FSL 6.0.6 or later is assumed; if you are using 6.0.5 or earlier, edit tall_preprocessing and comment out 
+FSL6.0.6 (using the --nthr option) and uncomment FSL6.0.5 (It will take longer but will do topup without multithreading).
+
+このスクリプトは、gpuとcuda10.2を使ってDICOMデータからXTRACTおよびXSTATまでの処理を行います。
+被験者ID名（例えばsub001）のディレクトリにDICOMファイルを用意して下さい。
+位相エンコード方向のみ異なるb0を含んだdMRI画像のペア（1セット以上）があることを前提としています。
+このスクリプトが入っている"scripts"ディレクトリに移動して以下のコマンドを打つと処理を開始します。 ./tauto.sh
+"Enter the path to your dicom folder >".と聞かれるので、被験者ディレクトリのパスを入力してください。ex) ~/imagedata/sub001
+結果は同じ被験者ディレクトリ内に出力され、dicomファイルはその中の "org_data "というフォルダにまとめられます。
+FSL 6.0.6以降を前提としています。6.0.5以前のバージョンをお使いの場合はtall_preprocessingを編集し、
+FSL 6.0.6（—-nthrオプションを使用）をコメントアウトしてFSL 6.0.5のコメントを外してください。
+時間がかかりますがマルチスレッドを使わずにtopupを行います。
+EOF
+}
+
+if [[ $1 == h ]]; then
+    usage
+    exit 0
+fi
+
+if [[ $1 == v ]]; then
+    echo $Version
+    exit 0
+fi
 
 # get path to dicom folder
 read -p "Enter the path to your dicom folder > " FPATH
@@ -28,10 +53,23 @@ if [[ ! -d $FPATH ]];then
     exit 1
 fi
 
-# define a function to record timelog
+# define a function to record timelog of each process
+
 timespent() {
+    echo "$1 started at $(date)"  | tee -a $FPATH/timelog.txt
+    startsec=$(date +%s)
+    eval ./$1
+    finishsec=$(date +%s)
+    echo "$1 finished at $(date)"  | tee -a $FPATH/timelog.txt
+
     spentsec=$((finishsec-startsec))
-    spenttime=$(date --date @$spentsec "+%T" -u)
+
+    # Support for both linux and mac date commands (i.e., GNU and BSD date)
+    spenttime=$(date --date @$spentsec "+%T" -u 2> /dev/null) # for linux
+    if [[ $? != 0 ]]; then
+        spenttime=$(date -u -r $spentsec +"%T") # for mac
+    fi
+
     if [[ $spentsec -ge 86400 ]]; then
         days=$((spentsec/86400))
         echo "Time spent was $days day(s) and $spenttime" | tee -a $FPATH/timelog.txt
@@ -41,7 +79,8 @@ timespent() {
     echo " " >> $FPATH/timelog.txt
 }
 
-# If timelog already exists in $ImagepPath, change its name.
+
+# If timelog already exists in the image directory(=FPATH), change its name.
 if [[ -f $FPATH/timelog.txt ]]; then
     mv $FPATH/timelog.txt $FPATH/timelog.txt_older_"$(date +%Y_%m_%d_%H_%M_%S)"
 fi
@@ -52,70 +91,44 @@ echo "Processing started at $(date)"  | tee -a $FPATH/timelog.txt
 echo " " >> $FPATH/timelog.txt
 
 # dicom to nifti 
-echo "tfirst started at $(date)"  | tee -a $FPATH/timelog.txt
-./tfirst.sh
-echo "tfirst finished at $(date)"  | tee -a $FPATH/timelog.txt
+timespent tfirst.sh
 
 # denoise, degibbs, topup, eddy, biasfieldcorrection, and make mask
-startsec=$(date +%s)
-echo "all_preprocessing started at $(date)"  | tee -a $FPATH/timelog.txt
-./tall_preprocessing.sh
-finishsec=$(date +%s)
-echo "all_preprocessing finished at $(date)"  | tee -a $FPATH/timelog.txt
-timespent
+timespent tall_preprocessing.sh
 
 # prepare files for TBSS
-startsec=$(date +%s)
-echo "preTBSS started at $(date)"  | tee -a $FPATH/timelog.txt
-./tpreTBSS.sh
-finishsec=$(date +%s)
-echo "preTBSS finished at $(date)"  | tee -a $FPATH/timelog.txt
-timespent
+timespent tpreTBSS.sh
 
 # To run TBSS, remove # from the line below.
 # TBSSを実施するときは下の行のコメントを外して下さい
-#./TBSS.sh
+# timespent TBSS.sh
 
 # run bedpostx_gpu
-startsec=$(date +%s)
-echo "bedpostx_gpu started at $(date)"  | tee -a $FPATH/timelog.txt
-./bedpostx_gpu.sh
-finishsec=$(date +%s)
-echo "bedpostx_gpu finished at $(date)"  | tee -a $FPATH/timelog.txt
-timespent
+timespent bedpostx_gpu.sh
 
 # make warp for registration
-startsec=$(date +%s)
-echo "makingwarps started at $(date)"  | tee -a $FPATH/timelog.txt
-./tmakingwarps.sh
-finishsec=$(date +%s)
-echo "makingwarps finished at $(date)"  | tee -a $FPATH/timelog.txt
-timespent
+timespent tmakingwarps.sh
 
 # run xtract_gpu and tractography of major tracts
-startsec=$(date +%s)
-echo "xtract_gpu started at $(date)"  | tee -a $FPATH/timelog.txt
-./xtract_gpu.sh
-finishsec=$(date +%s)
-echo "xtract_gpu finished at $(date)"  | tee -a $FPATH/timelog.txt
-timespent
+timespent xtract_gpu.sh
 
 # run xstats and get statistic value for drawn tracts
-startsec=$(date +%s)
-echo "xstat started at $(date)"  | tee -a $FPATH/timelog.txt
-./xstat.sh
-finishsec=$(date +%s)
-echo "xstat finished at $(date)"  | tee -a $FPATH/timelog.txt
-timespent
+timespent xstat.sh
 
 # record finish time
 allfinishsec=$(date +%s)
 echo "Processing finished at $(date)"  | tee -a $FPATH/timelog.txt
-echo "DTIpipeline finished. To check the tractography, copy xview into the subject directory, change directories \
-and run xview. Statistics is in DWI/XTRACT_output/stats.csv."
+echo "DTIpipeline finished. To check the tractography, copy "xview" script into the subject directory, \
+change directories and run xview. Statistics is in DWI/XTRACT_output/stats.csv."
 totaltimespent() {
     spentsec=$((allfinishsec-allstartsec))
-    spenttime=$(date --date @$spentsec "+%T" -u)
+
+    # Support for both linux and mac date commands (i.e., GNU and BSD date)
+    spenttime=$(date --date @$spentsec "+%T" -u 2> /dev/null) # for linux
+    if [[ $? != 0 ]]; then
+        spenttime=$(date -u -r $spentsec +"%T") # for mac
+    fi
+    # processing maybe over 1day
     if [[ $spentsec -ge 86400 ]]; then
         days=$((spentsec/86400))
         echo "Total time spent was $days day(s) and $spenttime" | tee -a $FPATH/timelog.txt
