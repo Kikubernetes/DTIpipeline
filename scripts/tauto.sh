@@ -1,10 +1,16 @@
 #!/bin/bash
 
-if [[ $1 == h ]]; then
-cat << EOF
+# This script is written by Kikuko Kaneko based on the 8th to 11th ABIS tutorial.
+# Some part is contributed by Dr.Nemoto.
+# See usage below for descriptions and usage of the scripts.
+Version=20230527
+
+usage() {
+    cat << EOF
 This script is to process DICOM data to XTRACT with gpu and cuda10.2.
 Prepare DICOM files in the directory named "ImageID" and set it the working directory.
-It is assumed that there are pair(s) (one or more sets) containing b0(s) that differ only in phase encoding direction.
+It is assumed that there is at least one pair of images containing b0(s) that differ
+only in phase encoding direction.
 In short, the command is like this: cd path_to_DTIpipeline/scripts; ./tauto.sh
 You will be asked to "Enter the path to your dicom folder >".
 Please enter the path to your dicom folder. ex) ~/imagedata/sub001
@@ -22,7 +28,16 @@ FSL 6.0.6以降を前提としています。6.0.5以前のバージョンをお
 FSL 6.0.6（—-nthrオプションを使用）をコメントアウトしてFSL 6.0.5のコメントを外してください。
 時間がかかりますがマルチスレッドを使わずにtopupを行います。
 EOF
-exit 0
+}
+
+if [[ $1 == h ]]; then
+    usage
+    exit 0
+fi
+
+if [[ $1 == v ]]; then
+    echo $Version
+    exit 0
 fi
 
 # get path to dicom folder
@@ -65,14 +80,14 @@ timespent() {
 }
 
 
-# If timelog already exists in ImagepPath, change its name.
+# If timelog already exists in the image directory(=FPATH), change its name.
 if [[ -f $FPATH/timelog.txt ]]; then
     mv $FPATH/timelog.txt $FPATH/timelog.txt_older_"$(date +%Y_%m_%d_%H_%M_%S)"
 fi
 
 # record start time
 allstartsec=$(date +%s)
-echo "Processing started at $(date)"  | tee $FPATH/timelog.txt
+echo "Processing started at $(date)"  | tee -a $FPATH/timelog.txt
 echo " " >> $FPATH/timelog.txt
 
 # dicom to nifti 

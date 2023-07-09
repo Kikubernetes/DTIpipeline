@@ -1,6 +1,8 @@
 #!/bin/bash
-# This script does dtifit preprocessed images and makes FA iamges, then prepare directories for further processing like TBSS, bedpostx, FMRIB_to_FA etc.
-# After preprocessing.sh, please start in the working directory named "Image ID" containing DWI directory which has following files:
+# This script is to run dtifit on preprocessed images and make FA and other images, 
+# then prepare directories for further processing like TBSS, bedpostx, FMRIB_to_FA etc.
+# After preprocessing.sh, please start in the working directory named "Image ID" 
+# containing DWI directory which has following files:
 #	SR_dwi_den_unr_preproc_unbiased.nii.gz
 #	SR_mask_den_unr_preproc_unb.nii.gz
 #	SR.bval
@@ -12,7 +14,12 @@ cd $FPATH
 # dtifit
 echo "Now fitting the images..."
 cd DWI
-dtifit --bvals=SR.bval --bvecs=SR.bvec --data=SR_dwi_den_unr_preproc_unbiased.nii.gz --mask=SR_mask_den_unr_preproc_unb.nii.gz --out=SR
+dtifit \
+--bvals=SR.bval \
+--bvecs=SR.bvec \
+--data=SR_dwi_den_unr_preproc_unbiased.nii.gz \
+--mask=SR_mask_den_unr_preproc_unb.nii.gz \
+--out=SR
 
 # prepare files for later processing
 cd ..
